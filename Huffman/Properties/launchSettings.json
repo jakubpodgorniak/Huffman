@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Huffman": {
+      "commandName": "Project",
+      "commandLineArgs": "input.txt"
+    }
+  }
+}
