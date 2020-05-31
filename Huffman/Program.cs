@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using Huffman.Drawing;
@@ -18,9 +19,10 @@ namespace Huffman
             var nyt = root;
 
             var treeDrawer = new TreeDrawer();
-            var dataWriter = new DataTableWriter();
+            var dataWriter = new TableWriter();
 
             var nodesByCharacter = new Dictionary<char, Node>();
+            var statsTable = new List<StatsTableRow>();
 
             for (int i = 0; i < input.Length; i++)
             {
@@ -62,12 +64,45 @@ namespace Huffman
                     characterNodesWithOrderNumberByCharacter[t.character].index,
                     t.character,
                     t.occurrences,
-                    t.code)).OrderByDescending(r => r.OrderNumber);
+                    t.code)).OrderByDescending(r => r.OrderNumber)
+                    .ToArray();
 
-                dataWriter.WriteToFile($"{ImagesDirectory}/tree{i}.csv", rows);
+                var averageCodeWordLength = CalculateAverageCodewordLength(rows);
+                var entropy = CalculateEntropy(rows);
+
+                statsTable.Add(new StatsTableRow(c, averageCodeWordLength, entropy));
+
+                dataWriter.WriteToFile(
+                    $"{ImagesDirectory}/tree{i}.csv",
+                    new[] { "Order number", "Character", "Occurrences", "Codeword" },
+                    rows);
             }
 
+            dataWriter.WriteToFile(
+                $"{ImagesDirectory}/_stats.csv",
+                new[] { "Character", "Average Codeword Length", "Entropy" },
+                statsTable);
+
             Console.ReadKey();
+        }
+
+        private static double CalculateAverageCodewordLength(DataTableRow[] rows)
+        {
+            var allCharsOccurrences = rows.Sum(r => r.Occurrences);
+
+            return rows.Sum(row => (row.Occurrences / (double)allCharsOccurrences) * row.CodeWord.Length);
+        }
+
+        private static double CalculateEntropy(DataTableRow[] rows)
+        {
+            var allCharsOccurrences = rows.Sum(r => r.Occurrences);
+
+            return rows.Sum(row =>
+            {
+                var p = row.Occurrences / (double)allCharsOccurrences;
+
+                return p * Math.Log2(1.0 / p);
+            });
         }
 
         private static void ClearImagesDirectory()
