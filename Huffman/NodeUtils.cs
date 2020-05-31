@@ -37,56 +37,37 @@ namespace Huffman
             var x = (float)(width / 2.0);
             const float y = HeightPerLevel / 2f;
 
-            return PrepareDrawNodes(
-                new[] { CreateDrawNode(node, node.GetTreeSize(), new SKPoint(x, y)) },
-                (float)width);
+            return PrepareDrawNodes(new[] { CreateDrawNode(node, node.GetTreeSize(), new SKPoint(x, y)) });
         }
 
-        private static IList<DrawNode> PrepareDrawNodes(
-            IList<DrawNode> drawNodes,
-            float initialWidth)
+        private static IList<DrawNode> PrepareDrawNodes(IList<DrawNode> drawNodes)
         {
             var childDrawNodes = new List<DrawNode>();
-
-            if (drawNodes.Count == 0)
-                return childDrawNodes;
+            if (drawNodes.Count == 0) return childDrawNodes;
 
             var lastNode = drawNodes.Last();
+            float y = (lastNode.Node.GetDeepnes() * HeightPerLevel) + (HeightPerLevel / 2);
             int nextOrderNumber = lastNode.OrderNumber - 1;
-            var deepness = lastNode.Node.GetDeepnes();
-            //float x = (float)(initialWidth / Math.Pow(2, deepness + 1));
-            float y = (deepness * HeightPerLevel) + (HeightPerLevel / 2);
 
-            foreach (var drawNode in drawNodes)
-            {
-                if (drawNode.Node.Right != null)
-                {
-                    var xShift = (float)((WidthForNode / 2f) * Math.Pow(2, drawNode.Node.Right.GetTreeHeight() - 1));
-
+            foreach (var drawNode in drawNodes) {
+                if (drawNode.Node.Right != null) {
+                    var x = drawNode.Position.X
+                        + (float)(WidthForNode / 2f * Math.Pow(2, drawNode.Node.Right.GetTreeHeight() - 1));
                     var orderNumber = nextOrderNumber--;
-                    var rightDrawNode = CreateDrawNode(drawNode.Node.Right, orderNumber, new SKPoint(
-                        drawNode.Position.X + xShift,
-                        y));
+                    var rightDrawNode = CreateDrawNode(drawNode.Node.Right, orderNumber, new SKPoint(x, y));
                     drawNode.RightOrderNumber = orderNumber;
-
                     childDrawNodes.Add(rightDrawNode);
                 }
-
-                if (drawNode.Node.Left != null)
-                {
-                    var xShift = (float)((WidthForNode / 2f) * Math.Pow(2, drawNode.Node.Left.GetTreeHeight() - 1));
-
+                if (drawNode.Node.Left != null) {
+                    var x = drawNode.Position.X
+                        - (float)(WidthForNode / 2f * Math.Pow(2, drawNode.Node.Left.GetTreeHeight() - 1));
                     var orderNumber = nextOrderNumber--;
-                    var leftDrawNode = CreateDrawNode(drawNode.Node.Left, orderNumber, new SKPoint(
-                        drawNode.Position.X - xShift,
-                        y));
+                    var leftDrawNode = CreateDrawNode(drawNode.Node.Left, orderNumber, new SKPoint(x, y));
                     drawNode.LeftOrderNumber = orderNumber;
-
                     childDrawNodes.Add(leftDrawNode);
                 }
             }
-
-            return drawNodes.Concat(PrepareDrawNodes(childDrawNodes, initialWidth)).ToList();
+            return drawNodes.Concat(PrepareDrawNodes(childDrawNodes)).ToList();
         }
 
         private static DrawNode CreateDrawNode(Node node, int orderNumber, SKPoint position)

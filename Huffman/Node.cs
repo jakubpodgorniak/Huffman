@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Reflection.Metadata.Ecma335;
 using Huffman.Drawing;
 
 namespace Huffman
 {
     public class Node
     {
+        public static Node NewInternal => new Node { Type = NodeType.Internal };
+
+        public static Node NewCharacter(char character, int initialWeight = 1)
+            => new Node { Type = NodeType.Character, Character = character, Weight = initialWeight };
+
         public static Node FindLastWithLowerWeight(Node node)
         {
             var root = node.GetSuperRoot();

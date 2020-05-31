@@ -27,32 +27,25 @@ namespace Huffman
             var statsTable = new List<StatsTableRow>();
             var rows = new DataTableRow[0];
 
-            for (int i = 0; i < input.Length; i++)
+            foreach (char c in input)
             {
-                var c = input[i];
-
                 if (nodesByCharacter.TryGetValue(c, out var existingCharacterNode))
-                {
                     existingCharacterNode.Weight++;
-                }
                 else
                 {
-                    var internalNode = new Node { Type = NodeType.Internal };
-                    var newCharacterNode = new Node { Type = NodeType.Character, Character = c, Weight = 1 };
+                    var parentNode = Node.NewInternal;
+                    var newCharacterNode = Node.NewCharacter(c);
+                    nodesByCharacter.Add(c, newCharacterNode);
+                    
                     var oldNytParent = nyt.Parent;
 
-                    if (oldNytParent != null)
-                    {
-                        oldNytParent.SetChildren(internalNode, oldNytParent.Right);
-                    }
+                    if (oldNytParent is null)
+                        root = parentNode;
                     else
-                    {
-                        root = internalNode;
-                    }
+                        oldNytParent.SetChildren(parentNode, oldNytParent.Right);
 
-                    internalNode.SetChildren(nyt, newCharacterNode);
+                    parentNode.SetChildren(nyt, newCharacterNode);
 
-                    nodesByCharacter.Add(newCharacterNode.Character.Value, newCharacterNode);
                 }
 
                 //treeDrawer.DrawNodesToFile($"{ResultsDirectory}/tree{i}.png", NodeUtils.PrepareDrawNodes(root).ToDictionary(dn => dn.OrderNumber));
@@ -70,13 +63,14 @@ namespace Huffman
                     t.code)).OrderByDescending(r => r.OrderNumber)
                     .ToArray();
 
-                var averageCodeWordLength = CalculateAverageCodewordLength(rows);
-                var entropy = CalculateEntropy(rows);
+                var probabilityByChar = GetProbabilityByChar(rows);
+                var averageCodeWordLength = CalculateAverageCodewordLength(rows, probabilityByChar);
+                var entropy = CalculateEntropy(probabilityByChar.Values);
 
                 statsTable.Add(new StatsTableRow(c, averageCodeWordLength, entropy));
 
                 dataWriter.WriteToFile(
-                    $"{ResultsDirectory}/tree{i}.csv",
+                    $"{ResultsDirectory}/tree{rows.Sum(r => r.Occurrences)}.csv",
                     new[] { "Order number", "Character", "Occurrences", "Codeword" },
                     rows);
 
@@ -139,23 +133,25 @@ namespace Huffman
             return b;
         }
 
-        private static double CalculateAverageCodewordLength(DataTableRow[] rows)
+        private static IDictionary<char, double> GetProbabilityByChar(DataTableRow[] rows)
         {
-            var allCharsOccurrences = rows.Sum(r => r.Occurrences);
+            var totalCharsOccurrences = rows.Sum(r => r.Occurrences);
 
-            return rows.Sum(row => (row.Occurrences / (double)allCharsOccurrences) * row.CodeWord.Length);
+            return rows.ToDictionary(
+                r => r.Character,
+                r => r.Occurrences / (double)totalCharsOccurrences);
         }
 
-        private static double CalculateEntropy(DataTableRow[] rows)
+        private static double CalculateAverageCodewordLength(
+            DataTableRow[] rows,
+            IDictionary<char, double> probabilityByChar)
         {
-            var allCharsOccurrences = rows.Sum(r => r.Occurrences);
+            return rows.Sum(row => probabilityByChar[row.Character] * row.CodeWord.Length);
+        }
 
-            return rows.Sum(row =>
-            {
-                var p = row.Occurrences / (double)allCharsOccurrences;
-
-                return p * Math.Log2(1.0 / p);
-            });
+        private static double CalculateEntropy(IEnumerable<double> probabilities)
+        {
+            return (-1.0) * probabilities.Sum(p => p * Math.Log2(p));
         }
 
         private static void ClearImagesDirectory()
