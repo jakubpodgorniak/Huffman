@@ -52,7 +52,7 @@ namespace Huffman
                     nodesByCharacter.Add(newCharacterNode.Character.Value, newCharacterNode);
                 }
 
-                treeDrawer.DrawNodesToFile($"{ImagesDirectory}/tree{i}.png", NodeUtils.PrepareDrawNodes(root).ToDictionary(dn => dn.OrderNumber));
+                treeDrawer.DrawNodesToFile($"{ResultsDirectory}/tree{i}.png", NodeUtils.PrepareDrawNodes(root).ToDictionary(dn => dn.OrderNumber));
 
                 var characterNodesWithOrderNumberByCharacter = NodeUtils.FlattenNodes(new[] { root })
                     .Reverse()
@@ -73,16 +73,19 @@ namespace Huffman
                 statsTable.Add(new StatsTableRow(c, averageCodeWordLength, entropy));
 
                 dataWriter.WriteToFile(
-                    $"{ImagesDirectory}/tree{i}.csv",
+                    $"{ResultsDirectory}/tree{i}.csv",
                     new[] { "Order number", "Character", "Occurrences", "Codeword" },
                     rows);
+
+                Console.WriteLine($"Odczytano znak [{c}], pomyślnie zapisano grafikę oraz tabelę danych.");
             }
 
             dataWriter.WriteToFile(
-                $"{ImagesDirectory}/_stats.csv",
+                $"{ResultsDirectory}/_stats.csv",
                 new[] { "Character", "Average Codeword Length", "Entropy" },
                 statsTable);
 
+            Console.WriteLine("Kodowanie zakończone");
             Console.ReadKey();
         }
 
@@ -107,13 +110,13 @@ namespace Huffman
 
         private static void ClearImagesDirectory()
         {
-            if (!Directory.Exists(ImagesDirectory))
-                Directory.CreateDirectory(ImagesDirectory);
+            if (!Directory.Exists(ResultsDirectory))
+                Directory.CreateDirectory(ResultsDirectory);
 
-            foreach (var filePath in Directory.GetFiles(ImagesDirectory))
+            foreach (var filePath in Directory.GetFiles(ResultsDirectory))
                 File.Delete(filePath);
         }
 
-        private const string ImagesDirectory = "images";
+        private const string ResultsDirectory = "results";
     }
 }
