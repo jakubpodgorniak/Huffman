@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
@@ -148,6 +149,34 @@ namespace Huffman
             UpdateWeight();
         }
 
+        public (char character, int occurrences, string code)[] BuildDataTable(string currentCode)
+        {
+            if (Type == NodeType.Internal)
+            {
+                var result = new List<(char, int, string)>();
+                var leftCode = currentCode + "0";
+                var rightCode = currentCode + "1";
+
+                if (Left != null)
+                {
+                    if (Left.Type == NodeType.Internal)
+                        result.AddRange(Left.BuildDataTable(leftCode));
+                    else if (Left.Type == NodeType.Character)
+                        result.Add((Left.Character.Value, Left.Weight, leftCode));
+                }
+
+                if (Right != null)
+                {
+                    if (Right.Type == NodeType.Internal)
+                        result.AddRange(Right.BuildDataTable(rightCode));
+                    else if (Right.Type == NodeType.Character)
+                        result.Add((Right.Character.Value, Right.Weight, rightCode));
+                }
+
+                return result.ToArray();
+            }
+            else return Array.Empty<(char, int, string)>();
+        }
 
         public void Draw(string name)
         {

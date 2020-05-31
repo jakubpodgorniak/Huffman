@@ -54,33 +54,31 @@ namespace Huffman
             var lastNode = drawNodes.Last();
             int nextOrderNumber = lastNode.OrderNumber - 1;
             var deepness = lastNode.Node.GetDeepnes();
-            float startX = (float)(initialWidth / Math.Pow(2, deepness + 1));
+            //float x = (float)(initialWidth / Math.Pow(2, deepness + 1));
             float y = (deepness * HeightPerLevel) + (HeightPerLevel / 2);
-            //float gap = (float)(initialWidth / Math.Pow(2, deepness));
 
-            //int i = 2 * drawNodes.Count;
             foreach (var drawNode in drawNodes)
             {
-                //i--;
-
                 if (drawNode.Node.Right != null)
                 {
+                    var xShift = (float)((WidthForNode / 2f) * Math.Pow(2, drawNode.Node.Right.GetTreeHeight() - 1));
+
                     var orderNumber = nextOrderNumber--;
                     var rightDrawNode = CreateDrawNode(drawNode.Node.Right, orderNumber, new SKPoint(
-                        drawNode.Position.X + startX,
+                        drawNode.Position.X + xShift,
                         y));
                     drawNode.RightOrderNumber = orderNumber;
 
                     childDrawNodes.Add(rightDrawNode);
                 }
 
-                //i--;
-
                 if (drawNode.Node.Left != null)
                 {
+                    var xShift = (float)((WidthForNode / 2f) * Math.Pow(2, drawNode.Node.Left.GetTreeHeight() - 1));
+
                     var orderNumber = nextOrderNumber--;
                     var leftDrawNode = CreateDrawNode(drawNode.Node.Left, orderNumber, new SKPoint(
-                        drawNode.Position.X - startX,
+                        drawNode.Position.X - xShift,
                         y));
                     drawNode.LeftOrderNumber = orderNumber;
 

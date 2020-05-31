@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SkiaSharp;
@@ -20,17 +21,32 @@ namespace Huffman.Drawing
 
         private void ResetBitmapAndCanvas(IEnumerable<DrawNode> drawNodes)
         {
+            var minX = drawNodes.Min(n => n.Position.X);
             var maxX = drawNodes.Max(n => n.Position.X);
             var maxY = drawNodes.Max(n => n.Position.Y);
-            var width = maxX + 100;
+            var width = (maxX - minX) + 100;
             var height = maxY + 100;
 
             width += (100 - (width % 100));
             height += (100 - (height % 100));
 
+            AdjustDrawNodesXPosition(drawNodes, minX);
+
             bitmap = new SKBitmap((int)width, (int)height);
             canvas = new SKCanvas(bitmap);
             canvas.Clear(SKColors.White);
+        }
+
+        private void AdjustDrawNodesXPosition(IEnumerable<DrawNode> drawNodes, float minX)
+        {
+            var shiftX = Math.Max(minX - 80, 0);
+
+            if (shiftX <= 1) return;
+
+            foreach (var node in drawNodes)
+            {
+                node.Position = new SKPoint(node.Position.X - shiftX, node.Position.Y);
+            }
         }
 
         private void SaveBitmapToFile(string filename)
