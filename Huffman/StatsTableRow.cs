@@ -2,7 +2,10 @@
 {
     public class StatsTableRow : ITableRow
     {
-        public StatsTableRow(char character, double averageCodewordLength, double entropy)
+        public StatsTableRow(
+            char character,
+            double averageCodewordLength,
+            double entropy)
         {
             Character = character;
             AverageCodewordLength = averageCodewordLength;

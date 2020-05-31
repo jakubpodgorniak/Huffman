@@ -2,7 +2,7 @@
   "profiles": {
     "Huffman": {
       "commandName": "Project",
-      "commandLineArgs": "input2.txt"
+      "commandLineArgs": "input.txt"
     }
   }
 }

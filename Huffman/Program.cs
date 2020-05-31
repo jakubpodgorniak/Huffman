@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
+using System.Text;
 using Huffman.Drawing;
 
 namespace Huffman
@@ -23,6 +25,7 @@ namespace Huffman
 
             var nodesByCharacter = new Dictionary<char, Node>();
             var statsTable = new List<StatsTableRow>();
+            var rows = new DataTableRow[0];
 
             for (int i = 0; i < input.Length; i++)
             {
@@ -52,7 +55,7 @@ namespace Huffman
                     nodesByCharacter.Add(newCharacterNode.Character.Value, newCharacterNode);
                 }
 
-                treeDrawer.DrawNodesToFile($"{ResultsDirectory}/tree{i}.png", NodeUtils.PrepareDrawNodes(root).ToDictionary(dn => dn.OrderNumber));
+                //treeDrawer.DrawNodesToFile($"{ResultsDirectory}/tree{i}.png", NodeUtils.PrepareDrawNodes(root).ToDictionary(dn => dn.OrderNumber));
 
                 var characterNodesWithOrderNumberByCharacter = NodeUtils.FlattenNodes(new[] { root })
                     .Reverse()
@@ -60,7 +63,7 @@ namespace Huffman
                     .Where(t => t.node.Type == NodeType.Character)
                     .ToDictionary(t => t.node.Character);
 
-                var rows = root.BuildDataTable(string.Empty).Select(t => new DataTableRow(
+                rows = root.BuildDataTable(string.Empty).Select(t => new DataTableRow(
                     characterNodesWithOrderNumberByCharacter[t.character].index,
                     t.character,
                     t.occurrences,
@@ -85,8 +88,55 @@ namespace Huffman
                 new[] { "Character", "Average Codeword Length", "Entropy" },
                 statsTable);
 
+            var compressed = CompressText(
+                rows.ToDictionary(r => r.Character, r => r.CodeWord),
+                input);
+
+            File.WriteAllBytes($"{ResultsDirectory}/compressed.huf", compressed);
+
             Console.WriteLine("Kodowanie zakończone");
             Console.ReadKey();
+        }
+
+        private static byte[] CompressText(IDictionary<char, string> codeByChar, string textToCompress)
+        {
+            var sb = new StringBuilder();
+            foreach (var c in textToCompress)
+                sb.Append(codeByChar[c]);
+            var bytesStr = sb.ToString();
+
+            var bytes = new List<byte>();
+            while (bytesStr.Length > 8)
+            {
+                var byteStr = bytesStr.Substring(0, 8);
+
+                bytes.Add(BitsStrToByte(byteStr));
+
+                bytesStr = bytesStr.Substring(8);
+            }
+
+            bytes.Add(BitsStrToByte(bytesStr));
+
+            return bytes.ToArray();
+        }
+
+        private static byte BitsStrToByte(string bitsStr)
+        {
+            bitsStr += string.Concat(Enumerable.Range(0, 8 - bitsStr.Length).Select(_ => "0"));
+
+            byte b = 0;
+
+            for (int i = 0; i < 8; i++)
+            {
+                if (bitsStr[7 - i] == '1')
+                {
+                    byte bit = (byte)(1 << i);
+
+                    b |= bit;
+                }
+            }
+
+            return b;
         }
 
         private static double CalculateAverageCodewordLength(DataTableRow[] rows)
@@ -117,6 +167,6 @@ namespace Huffman
                 File.Delete(filePath);
         }
 
-        private const string ResultsDirectory = "results";
+        private const string ResultsDirectory = "results2";
     }
 }
