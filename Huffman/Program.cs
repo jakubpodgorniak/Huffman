@@ -5,7 +5,7 @@ using Huffman.Drawing;
 
 namespace Huffman
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
@@ -21,6 +21,30 @@ namespace Huffman
             for (int i = 0; i < input.Length; i++)
             {
                 var c = input[i];
+
+                var existingCharacterNode = root.FindNode(c);
+
+                if (existingCharacterNode is null)
+                {
+                    var internalNode = new Node { Type = NodeType.Internal };
+                    var newCharacterNode = new Node { Type = NodeType.Character, Character = c, Weight = 1 };
+                    var oldNytParent = nyt.Parent;
+
+                    if (oldNytParent != null)
+                    {
+                        oldNytParent.SetChildren(internalNode, oldNytParent.Right);
+                    }
+                    else
+                    {
+                        root = internalNode;
+                    }
+
+                    internalNode.SetChildren(nyt, newCharacterNode);
+                }
+                else
+                {
+                    existingCharacterNode.Weight++;
+                }
 
                 treeDrawer.DrawNodesToFile($"{ImagesDirectory}/tree{i}.png", NodeUtils.PrepareDrawNodes(root).ToDictionary(dn => dn.OrderNumber));
             }

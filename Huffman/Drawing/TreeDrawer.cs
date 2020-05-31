@@ -20,12 +20,10 @@ namespace Huffman.Drawing
 
         private void ResetBitmapAndCanvas(IEnumerable<DrawNode> drawNodes)
         {
-            var minX = drawNodes.Min(n => n.Position.X);
             var maxX = drawNodes.Max(n => n.Position.X);
-            var minY = drawNodes.Min(n => n.Position.Y);
             var maxY = drawNodes.Max(n => n.Position.Y);
-            var width = (maxX - minX) + 100;
-            var height = (maxY - minY) + 100;
+            var width = maxX + 100;
+            var height = maxY + 100;
 
             width += (100 - (width % 100));
             height += (100 - (height % 100));

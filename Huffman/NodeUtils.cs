@@ -18,11 +18,11 @@ namespace Huffman
 
             foreach (var node in nodes)
             {
-                if (node.Left != null)
-                    childNodes.Add(node.Left);
-
                 if (node.Right != null)
                     childNodes.Add(node.Right);
+
+                if (node.Left != null)
+                    childNodes.Add(node.Left);
             }
 
             return nodes.Concat(FlattenNodes(childNodes)).ToList();
@@ -56,31 +56,31 @@ namespace Huffman
             var deepness = lastNode.Node.GetDeepnes();
             float startX = (float)(initialWidth / Math.Pow(2, deepness + 1));
             float y = (deepness * HeightPerLevel) + (HeightPerLevel / 2);
-            float gap = (float)(initialWidth / Math.Pow(2, deepness));
+            //float gap = (float)(initialWidth / Math.Pow(2, deepness));
 
-            int i = 2 * drawNodes.Count;
+            //int i = 2 * drawNodes.Count;
             foreach (var drawNode in drawNodes)
             {
-                i--;
+                //i--;
 
                 if (drawNode.Node.Right != null)
                 {
                     var orderNumber = nextOrderNumber--;
                     var rightDrawNode = CreateDrawNode(drawNode.Node.Right, orderNumber, new SKPoint(
-                        startX + (i * gap),
+                        drawNode.Position.X + startX,
                         y));
                     drawNode.RightOrderNumber = orderNumber;
 
                     childDrawNodes.Add(rightDrawNode);
                 }
 
-                i--;
+                //i--;
 
                 if (drawNode.Node.Left != null)
                 {
                     var orderNumber = nextOrderNumber--;
                     var leftDrawNode = CreateDrawNode(drawNode.Node.Left, orderNumber, new SKPoint(
-                        startX + (i * gap),
+                        drawNode.Position.X - startX,
                         y));
                     drawNode.LeftOrderNumber = orderNumber;
 
